@@ -31,4 +31,14 @@ final class PaginatedResult
     {
         return $this->page < $this->totalPages();
     }
+
+    public function previousPage(): int
+    {
+        return max(1, $this->page - 1);
+    }
+
+    public function nextPage(): int
+    {
+        return $this->page + 1;
+    }
 }
