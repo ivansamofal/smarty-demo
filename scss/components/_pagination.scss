@@ -1,0 +1,17 @@
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $spacing-4;
+    margin-top: $spacing-5;
+}
+
+.pagination__link {
+    color: $color-primary;
+    font-weight: 600;
+}
+
+.pagination__status {
+    color: $color-text-muted;
+    font-size: 0.875rem;
+}

@@ -1,0 +1,19 @@
+.sort-tabs {
+    display: flex;
+    gap: $spacing-2;
+    margin-block: $spacing-3;
+}
+
+.sort-tabs__link {
+    padding: $spacing-1 $spacing-3;
+    border-radius: $radius;
+    border: 1px solid $color-border;
+    font-size: 0.875rem;
+    color: $color-text-muted;
+}
+
+.sort-tabs__link--active {
+    border-color: $color-primary;
+    color: $color-primary;
+    font-weight: 600;
+}

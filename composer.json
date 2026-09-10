@@ -15,5 +15,8 @@
     "config": {
         "sort-packages": true,
         "optimize-autoloader": true
+    },
+    "require-dev": {
+        "scssphp/scssphp": "^2.1"
     }
 }

@@ -1,0 +1,16 @@
+.category-section {
+    margin-bottom: $spacing-5;
+}
+
+.category-section__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $spacing-3;
+    margin-bottom: $spacing-1;
+}
+
+.category-section__description {
+    color: $color-text-muted;
+    margin-bottom: $spacing-3;
+}

@@ -1,0 +1,41 @@
+.post {
+    background-color: $color-surface;
+    border: 1px solid $color-border;
+    border-radius: $radius;
+    padding: $spacing-4;
+    margin-bottom: $spacing-5;
+}
+
+.post__title {
+    margin-bottom: $spacing-2;
+}
+
+.post__meta {
+    display: flex;
+    gap: $spacing-3;
+    color: $color-text-muted;
+    font-size: 0.875rem;
+    margin-bottom: $spacing-3;
+}
+
+.post__image {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: $radius;
+    margin-bottom: $spacing-3;
+}
+
+.post__description {
+    color: $color-text-muted;
+    margin-bottom: $spacing-3;
+}
+
+.post__content {
+    white-space: pre-wrap;
+    margin-bottom: $spacing-3;
+}
+
+.similar-posts h2 {
+    margin-bottom: $spacing-3;
+}
