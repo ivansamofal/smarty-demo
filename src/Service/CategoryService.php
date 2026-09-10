@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Entity\Category;
 use App\Exception\CategoryNotFoundException;
 use App\Repository\CategoryRepository;
 use App\Repository\PostRepository;
@@ -24,13 +25,19 @@ final class CategoryService
      */
     public function getHomePagePreviews(int $postsPerCategory = 3): array
     {
+        $categories = $this->categories->findAllWithPosts();
+
+        if ($categories === []) {
+            return [];
+        }
+
+        $categoryIds = array_map(static fn (Category $category): int => $category->id, $categories);
+        $postsByCategory = $this->posts->findLatestByCategories($categoryIds, $postsPerCategory);
+
         $previews = [];
 
-        foreach ($this->categories->findAllWithPosts() as $category) {
-            $previews[] = new CategoryPreview(
-                $category,
-                $this->posts->findLatestByCategory($category->id, $postsPerCategory),
-            );
+        foreach ($categories as $category) {
+            $previews[] = new CategoryPreview($category, $postsByCategory[$category->id] ?? []);
         }
 
         return $previews;

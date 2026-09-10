@@ -152,9 +152,11 @@ public/index.php → Router → Controller → Service → Repository → PDO
 
 - **Главная страница**: `CategoryService::getHomePagePreviews()` берёт только категории,
   у которых есть хотя бы одна статья (`INNER JOIN` с `post_category`, без категорий без
-  статей), и для каждой отдельным запросом подтягивает 3 последние по `published_at`
-  статьи. N+1 запросов здесь осознанный выбор ради простоты и читаемости — категорий
-  на реальном блоге немного, а не сотни.
+  статей), и одним запросом (`PostRepository::findLatestByCategories()`) подтягивает
+  3 последние по `published_at` статьи сразу для всех категорий — через оконную функцию
+  `ROW_NUMBER() OVER (PARTITION BY category_id ORDER BY published_at DESC)` и фильтр
+  `rn <= 3`. Число запросов на главную не растёт с числом категорий (было N+1 — по
+  одному запросу на категорию).
 - **Сортировка и пагинация категории**: `PostRepository::findByCategoryPaginated()`
   строит один `SELECT` с `ORDER BY` по колонке, которую определяет `PostSort` (`date` →
   `published_at`, `views` → `views`), и `LIMIT`/`OFFSET`, посчитанными из номера страницы;

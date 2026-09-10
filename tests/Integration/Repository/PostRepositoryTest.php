@@ -10,7 +10,7 @@ use Tests\Integration\IntegrationTestCase;
 
 final class PostRepositoryTest extends IntegrationTestCase
 {
-    public function testFindLatestByCategoryReturnsMostRecentFirst(): void
+    public function testFindLatestByCategoriesReturnsMostRecentFirst(): void
     {
         $categoryId = $this->insertCategory('PHP', 'php');
         $old = $this->insertPost('Старый', 'old', '2026-01-01 10:00:00');
@@ -19,12 +19,15 @@ final class PostRepositoryTest extends IntegrationTestCase
         $this->linkPostCategory($new, $categoryId);
 
         $repository = new PostRepository($this->connection);
-        $posts = $repository->findLatestByCategory($categoryId, 10);
+        $postsByCategory = $repository->findLatestByCategories([$categoryId], 10);
 
-        self::assertSame(['new', 'old'], array_map(static fn ($post) => $post->slug, $posts));
+        self::assertSame(
+            ['new', 'old'],
+            array_map(static fn ($post) => $post->slug, $postsByCategory[$categoryId]),
+        );
     }
 
-    public function testFindLatestByCategoryRespectsLimit(): void
+    public function testFindLatestByCategoriesRespectsLimit(): void
     {
         $categoryId = $this->insertCategory('PHP', 'php');
 
@@ -34,8 +37,42 @@ final class PostRepositoryTest extends IntegrationTestCase
         }
 
         $repository = new PostRepository($this->connection);
+        $postsByCategory = $repository->findLatestByCategories([$categoryId], 3);
 
-        self::assertCount(3, $repository->findLatestByCategory($categoryId, 3));
+        self::assertCount(3, $postsByCategory[$categoryId]);
+    }
+
+    public function testFindLatestByCategoriesBatchesMultipleCategoriesInOneCall(): void
+    {
+        $phpId = $this->insertCategory('PHP', 'php');
+        $jsId = $this->insertCategory('JavaScript', 'javascript');
+
+        $phpOld = $this->insertPost('PHP старый', 'php-old', '2026-01-01 10:00:00');
+        $phpNew = $this->insertPost('PHP новый', 'php-new', '2026-01-05 10:00:00');
+        $this->linkPostCategory($phpOld, $phpId);
+        $this->linkPostCategory($phpNew, $phpId);
+
+        $jsPost = $this->insertPost('JS пост', 'js-post', '2026-01-03 10:00:00');
+        $this->linkPostCategory($jsPost, $jsId);
+
+        $repository = new PostRepository($this->connection);
+        $postsByCategory = $repository->findLatestByCategories([$phpId, $jsId], 10);
+
+        self::assertSame(
+            ['php-new', 'php-old'],
+            array_map(static fn ($post) => $post->slug, $postsByCategory[$phpId]),
+        );
+        self::assertSame(
+            ['js-post'],
+            array_map(static fn ($post) => $post->slug, $postsByCategory[$jsId]),
+        );
+    }
+
+    public function testFindLatestByCategoriesReturnsEmptyArrayForNoCategories(): void
+    {
+        $repository = new PostRepository($this->connection);
+
+        self::assertSame([], $repository->findLatestByCategories([], 3));
     }
 
     public function testFindByCategoryPaginatedSortsByViewsDescending(): void

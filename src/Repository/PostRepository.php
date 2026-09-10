@@ -17,23 +17,47 @@ final class PostRepository
     }
 
     /**
-     * @return list<Post>
+     * @param list<int> $categoryIds
+     * @return array<int, list<Post>>
      */
-    public function findLatestByCategory(int $categoryId, int $limit): array
+    public function findLatestByCategories(array $categoryIds, int $limitPerCategory): array
     {
+        if ($categoryIds === []) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($categoryIds), '?'));
+
         $statement = $this->connection->prepare(
-            'SELECT p.id, p.title, p.slug, p.description, p.content, p.image, p.views, p.published_at
-             FROM posts p
-             INNER JOIN post_category pc ON pc.post_id = p.id
-             WHERE pc.category_id = :categoryId
-             ORDER BY p.published_at DESC
-             LIMIT :limit',
+            "SELECT * FROM (
+                SELECT
+                    p.id, p.title, p.slug, p.description, p.content, p.image, p.views, p.published_at,
+                    pc.category_id AS category_id,
+                    ROW_NUMBER() OVER (PARTITION BY pc.category_id ORDER BY p.published_at DESC) AS rn
+                FROM posts p
+                INNER JOIN post_category pc ON pc.post_id = p.id
+                WHERE pc.category_id IN ($placeholders)
+             ) ranked
+             WHERE ranked.rn <= ?
+             ORDER BY ranked.category_id ASC, ranked.published_at DESC",
         );
-        $statement->bindValue('categoryId', $categoryId, PDO::PARAM_INT);
-        $statement->bindValue('limit', $limit, PDO::PARAM_INT);
+
+        $position = 1;
+
+        foreach ($categoryIds as $categoryId) {
+            $statement->bindValue($position++, $categoryId, PDO::PARAM_INT);
+        }
+
+        $statement->bindValue($position, $limitPerCategory, PDO::PARAM_INT);
         $statement->execute();
 
-        return array_map($this->hydrate(...), $statement->fetchAll());
+        $postsByCategory = [];
+
+        foreach ($statement->fetchAll() as $row) {
+            $postsByCategory[(int) $row['category_id']][] = $this->hydrate($row);
+        }
+
+        return $postsByCategory;
     }
 
     public function countByCategory(int $categoryId): int
