@@ -3,4 +3,5 @@
 /.env
 /.idea/
 /node_modules/
+/.phpunit.result.cache
 .env
